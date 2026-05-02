@@ -1,4 +1,4 @@
-%% INTRODUÇÃO AO MATLAB
+%% INTRODUÇÃO AO MATLAB - AULA 1
 % Este script apresenta os conceitos básicos da linguagem MATLAB.
 % Você pode executar linha por linha (Ctrl + Enter) para observar os resultados.
 

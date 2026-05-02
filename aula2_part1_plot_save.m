@@ -1,108 +1,151 @@
-% class2 - part1 - Introduction to Signal Processing - Generating an Artificial Signal
-clc % limpa "comand Window"
-clear % limpa "workspace/memory"
-close all % fechar todas as figuras
+%% INTRODUÇÃO AO PROCESSAMENTO DE SINAIS - AULA 2
+% Este script demonstra como sinais são gerados, combinados e visualizados
 
-%% parameters
-sampling_rate = 1000;
-delta_time = 1/sampling_rate;
-finish_time = 10;
+clc
+clear
+close all
 
-%% vectors
-time_vector = delta_time:delta_time:finish_time;
-signal_noise = randn(1, sampling_rate*finish_time);
-signal_noise_trails = randn(100, sampling_rate*finish_time);
+%% =========================================
+% CONCEITO 0: TEOREMA DE NYQUIST
+% =========================================
+% Para representar corretamente um sinal digitalmente:
+% A frequência de amostragem (fs) deve ser pelo menos 2x maior que frequência do
+% sinal que esperamos analisar;
+% fs >= 2 * f_max
+%
+% Exemplo: para detectar 100 Hz → precisamos de pelo menos 200 Hz
 
-%% plot signal with noise
-fig2 = figure(2);clf
-plot(time_vector,signal_noise)
-xlabel 'time s'
-ylabel 'voltage mV'
-title 'noise'
+% Um sinal de eletrofisiologia tem ao todo 30000 Hz.
+% Como geralmente analisamos eventos em até 500 HZ precisamos de 
+% uma amostragem de no minimo 1000 Hz
 
-%% subplots base signals
-fig3 = figure(3);clf
+samplingFrequency = 1000;  % Taxa de amostragem: quantas amostras por segundo
+
+%% ================================
+% 1. PARÂMETROS DE AMOSTRAGEM
+% ================================
+
+timeStep = 1 / samplingFrequency; % Intervalo entre amostras
+signalDuration = 10;              % Duração total do sinal (Segundos)
+
+%% ================================
+% 2. VETOR DE TEMPO
+% ================================
+% Um sinal digital é representado como uma sequência de valores ao longo do tempo
+
+timeVector = 0:timeStep:signalDuration - timeStep;
+
+%% ================================
+% 3. RUÍDO (NOISE)
+% ================================
+% Ruído é um sinal aleatório, frequentemente modelado como distribuição normal
+
+noiseSignal = randn(1, length(timeVector));
+
+numberOfTrials = 50;
+noiseTrialsMatrix = randn(numberOfTrials, length(timeVector));
+
+%% Visualização do ruído
+
+figure
 
 subplot(2,1,1)
-plot(time_vector,signal_noise);
-xlabel 'time s'
-ylabel 'voltage mV'
-title 'noise'
+plot(timeVector, noiseSignal)
+title('Ruído - única realização')
+xlabel('Tempo (s)')
+ylabel('Amplitude')
 
 subplot(2,1,2)
-plot(time_vector,signal_noise_trails);
+plot(timeVector, noiseTrialsMatrix(1:5,:)) % primeiras realizações
 hold on
-plot(time_vector,mean(signal_noise_trails, 1),'w','LineWidth',3);
+plot(timeVector, mean(noiseTrialsMatrix,1), 'k', 'LineWidth', 2)
 
-xlabel 'time s'
-ylabel 'voltage mV'
-title 'noise_trials'
+title('Múltiplas realizações + média')
+xlabel('Tempo (s)')
+ylabel('Amplitude')
 xlim([0 1])
 
-%% complex_signals
-frequency1 = 10;
-frequency2 = 30;
-frequency3 = 100;
+%% ================================
+% 4. SINAIS SENOIDAIS
+% ================================
+% Uma senoide é um sinal periódico definido por frequência, amplitude e fase
+% Frequência indica quantos ciclos ocorrem por segundo (Hz)
 
-signal_10Hz = sin(time_vector*frequency1*2*pi);
-signal_30Hz = sin(time_vector*frequency2*2*pi);
-signal_100Hz = sin(time_vector*frequency3*2*pi);
+frequency10Hz = 10;
+frequency30Hz = 30;
+frequency100Hz = 100;
 
-signal_10Hz_edit1 = 2*sin(time_vector*frequency1*2*pi);
+signal10Hz = sin(2 * pi * frequency10Hz * timeVector);
+signal30Hz = sin(2 * pi * frequency30Hz * timeVector);
+signal100Hz = sin(2 * pi * frequency100Hz * timeVector);
 
-complex_signal = signal_10Hz + signal_30Hz + signal_100Hz;
+%% ================================
+% 5. MANIPULAÇÃO DE AMPLITUDE
+% ================================
+% A amplitude controla a "altura" do sinal
 
-complex_signal_edit = signal_10Hz_edit1 + signal_30Hz + signal_100Hz;
+signal10HzAmplitude2 = 2 * sin(2 * pi * frequency10Hz * timeVector);
 
-%% subplots for representation
-fig4 = figure(4);clf
+%% ================================
+% 6. SINAL COMPLEXO (SUPERPOSIÇÃO)
+% ================================
+% Um sinal complexo pode ser visto como a soma de múltiplas componentes
 
-subplot(6,1,1)
-plot(time_vector,signal_10Hz);
-xlabel 'time s'
-ylabel 'voltage mV'
-title 'signal 10hz'
-xlim([0 1])
+complexSignal = signal10Hz + signal30Hz + signal100Hz;
+complexSignalModified = signal10HzAmplitude2 + signal30Hz + signal100Hz;
 
-subplot(6,1,2)
-plot(time_vector,signal_30Hz);
-xlabel 'time s'
-ylabel 'voltage mV'
-title 'signal 30hz'
-xlim([0 1])
+%% ================================
+% 7. VISUALIZAÇÃO DOS SINAIS
+% ================================
 
-subplot(6,1,3)
-plot(time_vector,signal_100Hz);
-xlabel 'time s'
-ylabel 'voltage mV'
-title 'signal 100hz'
-xlim([0 1])
+figure
 
-subplot(6,1,4)
-plot(time_vector,signal_10Hz_edit1);
-xlabel 'time s'
-ylabel 'voltage mV'
-title 'signal 10hz edit1'
-xlim([0 1])
+signalsToPlot = {
+    signal10Hz
+    signal30Hz
+    signal100Hz
+    signal10HzAmplitude2
+    complexSignal
+    complexSignalModified
+};
 
-subplot(6,1,5)
-plot(time_vector,complex_signal);
-xlabel 'time s'
-ylabel 'voltage mV'
-title 'complex signal'
-xlim([0 1])
+titlesList = {
+    'Sinal 10 Hz'
+    'Sinal 30 Hz'
+    'Sinal 100 Hz'
+    'Sinal 10 Hz (Amplitude x2)'
+    'Sinal complexo (soma)'
+    'Sinal complexo (modificado)'
+};
 
-subplot(6,1,6)
-plot(time_vector,complex_signal_edit);
-xlabel 'time s'
-ylabel 'voltage mV'
-title 'complex signal edit'
-xlim([0 1])
+for i = 1:length(signalsToPlot)
+    subplot(6,1,i)
+    plot(timeVector, signalsToPlot{i})
+    title(titlesList{i})
+    xlabel('Tempo (s)')
+    ylabel('Amplitude')
+    xlim([0 1])
+end
 
-%% saves
-save('C:\Users\ariog\Downloads\aulas_matlab\dados_da_aula\complex_signals.mat', 'sig*', 'time_vector', 'signal_noise', 'complex_signal_edit')
-saveas(fig4,'C:\Users\ariog\Downloads\aulas_matlab\dados_da_aula\complex_signals_image', 'jpg')
+%% ================================
+% 8. SALVAMENTO
+% ================================
 
+outputFolder = 'C:\Users\ariog\Downloads\aulas_matlab\dados_da_aula';
 
+% Garante que a pasta existe
+if ~exist(outputFolder, 'dir')
+    mkdir(outputFolder);
+end
 
+% Caminhos completos
+dataFilePath = fullfile(outputFolder, 'complexSignals.mat');
+imageFilePath = fullfile(outputFolder, 'complexSignals.jpg');
 
+% Salvando dados
+save(dataFilePath, ...
+    'signal10Hz', 'signal30Hz', 'signal100Hz', ...
+    'noiseSignal', 'complexSignal', 'complexSignalModified', 'timeVector')
+
+% Salvando figura
+saveas(gcf, imageFilePath)
