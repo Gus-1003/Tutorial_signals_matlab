@@ -19,7 +19,7 @@ close all
 
 samplingFrequencyHz = 1000;   % taxa de amostragem
 timeStep = 1 / samplingFrequencyHz;
-signalDuration = 5;           % segundos
+signalDuration = 10;           % segundos
 
 timeVector = 0:timeStep:signalDuration-timeStep;
 
