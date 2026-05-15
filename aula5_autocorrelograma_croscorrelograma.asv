@@ -1,0 +1,109 @@
+clc
+clear
+close all
+
+% correlogramo = Analise de correlação / 
+% autocorrelograma = O sinal com ele mesmo /
+% croscorrelograma = corelação entre sinais / 
+
+%% =========================================
+% 1. IMPORTAÇÃO DE DADOS
+% =========================================
+
+dataFolder = 'dados_da_aula';
+dataFile = fullfile(dataFolder, 'complexSignals.mat');
+
+load(dataFile)
+
+addpath('libs')
+
+%% PLOT SIGNALS
+figure(1), clf
+plot(timeVector, complexSignal, 'k')
+xlabel 'Time(s)'
+ylabel 'Voltage(mV)'
+title 'Complex Signal'
+
+%% =========================================
+% 2. Calcular Correlação: ACG, CCG, CCGr
+% =========================================
+
+figure(2), clf
+
+[ACG, lags] = xcorr(complexSignal, complexSignal, 1000, 'coeff');
+subplot(121)
+plot(lags, ACG)
+xlim([-500 500])
+ylim([-1 1])
+ylabel('ACG')
+title('Autocorrelograma', 'FontSize',13)
+
+[ACG2, lags] = xcorr(eegfilt(complexSignal, 1000, 5, 15), complexSignal, 1000, 'coeff');
+subplot(122)
+plot(lags, ACG2)
+xlim([-500 500])
+ylim([-1 1])
+ylabel('ACG')
+title('Autocorrelograma Theta FiltSig', 'FontSize',13)
+
+%% PLOT com Sinal Alterado
+figure(3), clf
+
+sig_comp2 = complexSignal + 3*sin(timeVector*60*2*pi);
+
+[CCG, lags] = xcorr(complexSignal, sig_comp2, 1000, 'coeff');
+plot(lags, CCG)
+xlim([-500 500])
+ylim([-1 1])
+ylabel('CCG')
+title('Crosscorrelograma', 'FontSize',13)
+
+
+%% PLOT com Sinal Alterado
+figure(4), clf
+
+sig_noise = randn(1, 1000*10);
+
+[CCGrs, lags] = xcorr(complexSignal, sig_noise, 1000, 'coeff');
+plot(lags, CCGrs)
+xlim([-500 500])
+ylim([-1 1])
+ylabel('CCG')
+title('Crosscorrelograma', 'FontSize',13)
+
+%% =========================================
+% 3. ACG no tempo
+% =========================================
+
+%% PARAMETROS
+timestep = 1; % segundos
+windowlength = 2; % segundos
+timeVectorACG = [];
+srate = 1000;
+
+%% Calcular correlacao: ACG
+sig_temp = eegfilt(complexSignal, srate, 5, 15);
+
+for n_window = 1:(timevector(end) - windowlength + timestep)
+    window = (1:(windowlength*srate))+(n_window-1)*timestep*srate;
+    timeVectorACG(n_window) = median(window)/srate;
+
+    [ACG, lags] = xcorr(complexSignal(window), complexSignal(window), 0.5*srate, 'coeff');
+    ACGnotempo(n_window, :) = ACG;
+
+    [ACGfilt, lags] = xcorr(sig_temp(window), sig_temp(window), 0.5*srate, 'coeff');
+    ACGfiltnotempo(n_window, :) = ACGfilt;
+end
+
+%% plotar
+figure(5), clf
+subplot(211)
+
+imagesc(timeVectorACG, lags/srate*1000, ACGnotempo') %(') depois de iuma
+set(gca, 'fontsize', 12)
+set(gcf, 'color', 'white')
+xlabel('Time(s)')
+ylabel('Lag(ms)')
+title('Temporal ACG', 'FontSize',  13)
+axis xy
+xlim([1 (timevector(end)-windowlength+timestep)])
